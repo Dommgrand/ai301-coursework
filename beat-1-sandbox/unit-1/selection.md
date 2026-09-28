@@ -121,10 +121,15 @@ Quote source text directly in each field below. Paraphrase does not satisfy them
 **Run history**
 
 agreement 2/3
+
 agreement 3/3
+
 agreement 16/20 scored items (bar 18/20: FAIL)
+
 agreement 19/20 scored items (bar 18/20: PASS)
+
 agreement 18/20 scored items (bar 18/20: PASS)
+
 
 The final 18/20 score matches the agreement line in the committed `eval-run.txt`.
 
