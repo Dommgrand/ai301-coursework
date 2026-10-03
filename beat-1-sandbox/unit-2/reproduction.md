@@ -2,13 +2,6 @@
 
 Path: `beat-1-sandbox/unit-2/reproduction.md`
 
-Record of your claim and reproduction on the issue you chose in Unit 1, and of the
-evaluation runs that produced `eval-run.txt`. This file is graded at the path above; a copy
-kept anywhere else in the repository is not read.
-
-Complete every labelled field below. Each is graded on its own; content placed under the wrong
-label is not graded.
-
 ---
 
 ## Your identity upstream
