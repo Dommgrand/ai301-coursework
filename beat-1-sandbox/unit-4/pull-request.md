@@ -46,6 +46,12 @@ I retained this condition when revising the silent drift check because the initi
 
 The revised silent drift check is less likely to reject a PR solely because an illustrative output string differs from an example. This improves agreement on cases such as pkg-16, but it requires the evaluator to distinguish harmless presentation differences from material behavioral contradictions. I reran pkg-03, pkg-04, and pkg-16 as canaries and obtained 3/3 agreement; I also reran pkg-08 and pkg-19 and obtained 2/2 agreement. The final full evaluation achieved 20/20 agreement.
 
+**Live precheck result**
+
+Verdict: reject
+
+The live precheck rejected PR #78 because the commit message does not follow the repository’s required <type>(<scope>): <description> format. The existing commit message is Fix async mocks in review service tests. I left the existing PR and its commit history unchanged rather than amending and force-pushing during this planning and precheck exercise. The evaluation harness result was separate: the final full evaluation achieved 20/20 agreement, passing the required 18/20 threshold.
+
 ---
 
 Related paths: `eval-run.txt` in this directory; your skill's files in
