@@ -15,45 +15,36 @@ label is not graded.
 
 **Pull request**
 
-[Link to the pull request you opened. It must be the pull request's own page on the Path
-Review repo, not your fork's branch page.]
+https://github.com/codepath/pathreview-ai301-fa26-howard/pull/78
 
 **Branch**
 
-[The name of the branch the pull request comes from, exactly as it appears in your fork.
-The naming shape is a type prefix, then the issue number, then a short description. **The
-issue number in the branch name must be the number of the issue the pull request fixes** —
-a name carrying any other number does not satisfy this field.]
+fix/issue-65-async-mocks
 
 ## Eval iterations
 
-Answer all four sections. Quote source text directly; paraphrase does not satisfy these
-fields.
-
 **Run history**
 
-[The agreement score of each run you did, in order. A single run is a complete answer if
-only one run occurred. **The last score in your list must match the agreement line in the
-`eval-run.txt` you committed** — that file is the record of your final run.]
-
+1. Initial full evaluation: 17/20 agreement.
+2. Targeted canary rerun of pkg-03, pkg-04, and pkg-16: 3/3 agreement.
+3. Targeted canary rerun of pkg-08 and pkg-19: 2/2 agreement.
+4. Final full evaluation: 20/20 scored items, meeting the required 18/20 threshold. The committed eval-run.txt records: agreement: 20/20 scored items (bar: 18/20: PASS).
+   
 **Package analysis**
 
-[Pick one scored package (`pkg-01` through `pkg-20` — the four `calib-` packages are never
-scored). Name it by id, say what your rubric decided and what the gold label said, and
-explain why your rubric read it that way.]
+pkg-16 — The initial rubric disagreed with the gold label because the pass conditions were too sensitive to differences in illustrative output strings. I revised the silent drift and not tested pass conditions to focus on whether the evidence supports the promised behavior, rather than requiring every illustrative output string to match exactly. The targeted canary rerun agreed with the gold label for pkg-16, and the final full evaluation achieved 20/20 agreement.
 
 **Check rationale**
 
-[Quote one check from the `rubric.md` you uploaded to `tools/pr-precheck/`, exactly as it reads now.
-Then say why it reads that way — what you revised to get there, or what you rejected in
-favour of it.]
+Exact quote from the silent drift check in tools/pr-precheck/rubric.md:
+
+  Distinguish the promised behavior from illustrative examples of output: a wording or formatting difference     in an example is not by itself a material contradiction when the diff supports the stated behavior.
+
+I retained this condition when revising the silent drift check because the initial evaluation exposed an overly strict interpretation of illustrative output differences. The revision allows the rubric to evaluate the actual behavior supported by the diff without overlooking genuine contradictions, missing requirements, or unexplained scope changes.
 
 **Trade-offs**
 
-[Every check gives something up. Any one of these is a complete answer: a package whose
-result it changes, a canary you re-ran with `--only`, a case you accept it will miss, or a
-stated reason nothing changed elsewhere. "Nothing changed, and here is how I know" earns
-the point in full when the reason follows.]
+The revised silent drift check is less likely to reject a PR solely because an illustrative output string differs from an example. This improves agreement on cases such as pkg-16, but it requires the evaluator to distinguish harmless presentation differences from material behavioral contradictions. I reran pkg-03, pkg-04, and pkg-16 as canaries and obtained 3/3 agreement; I also reran pkg-08 and pkg-19 and obtained 2/2 agreement. The final full evaluation achieved 20/20 agreement.
 
 ---
 
