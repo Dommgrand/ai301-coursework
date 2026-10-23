@@ -55,10 +55,9 @@ happened; these entries are the toolkit's own timeline.
 All four entries are graded. Keep every heading below, and fill each
 one in the week it belongs to.
 
-**Unit 5: [one line on the tool work]**
+**Unit 9: Building and Refining My Open-Source Issue Scout**
 
-[2-4 sentences: what you built (the scout, your strategy), what broke
-or fell short, what changed because of it.]
+I built an `issue-scout` Claude skill using my technical interests to create GitHub search queries, ranking filters, and a five-check grading rubric for evaluating open-source issues. My initial scan returned 300 results, narrowed them to 250 candidates, and graded the top five, but further investigations showed that an issue could appear available even when an unlinked pull request had already resolved it. I improved the rubric to search related pull requests and inspect whether the reported problem was already fixed, then validated the change by regrading EMF Camp #1931 from accept to reject. I also graded three issues from the CodePath selection site and learned that passing all five checks does not necessarily reveal partially completed work, unclear implementation scope, or slow reviews for outside contributors.
 
 **Unit 6: [one line on the tool work]**
 
