@@ -122,31 +122,47 @@ What the issue's demonstration video shows (its frames were extracted and measur
 
 **Environment Setup**
 
-[What a stranger would need to stand this up: your operating system,
-the relevant versions (language, runtime, package manager, the project
-itself), and how you set the project up. Then the challenges you faced
-and how you solved them, or that none came up.]
+- QDash: `develop` at commit [`917f2da5`](https://github.com/oqtopus-team/qdash/commit/917f2da5) ("docs(repo): align pi package guides and policies (#1700)"), with no local source changes.
+- Machine: macOS 26.6.2 (arm64), Docker Desktop 4.97.0 (Engine 29.9.2), Node 24.22.2, Bun 1.4.4, uv 0.13.6.
+- Browser: Google Chrome (user-agent version 153.0.0.0) on macOS, viewport 957 × 827 CSS px, device pixel ratio 2.
+- Setup: I started the stack with `task dev-local`. That runs MongoDB, PostgreSQL, the Prefect server, the deployment service and the user-flow worker in Docker, the API on the host at `:5715`, and the UI with `bun run dev` at `:5714`. I logged in as the local admin, whose default project is created on the first API start.
+- Test chip: I created a disposable 16-qubit chip through the API with `POST /chips` and `{"chip_id": "repro-1218-16q", "size": 16, "topology_id": "square-lattice-mux-16", "config": {"create": false}}`. It gives a 4×4 square grid with 16 qubits and 48 couplings, and has no calibration data, so the grid cells are empty.
+- Challenge: on the first start, the MongoDB container kept crashing. MongoDB 9.0.4 refuses to run on Linux kernels 6.19.0 to 7.0.13 (SERVER-121912), and Docker Desktop's VM was on a kernel in that range. I stopped the stack without removing volumes or changing the image, updated Docker Desktop to 4.97.0 (kernel 7.0.14-linuxkit), and the stack then started cleanly.
+- Difference from the issue: the issue does not state a browser, OS or window size.
 
 **Steps to Reproduce**
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Open each view with the chip `repro-1218-16q` selected:
+   - `/metrics`, Qubit: `http://localhost:5714/metrics?chip=repro-1218-16q&type=qubit`
+   - `/metrics`, Coupling: `http://localhost:5714/metrics?chip=repro-1218-16q&type=coupling`
+   - `/chip`, Qubit tab: `http://localhost:5714/chip?chip=repro-1218-16q&view=1q`
+   - `/chip`, Coupling tab: `http://localhost:5714/chip?chip=repro-1218-16q&view=2q`
+2. Keep the **Lock** tab selected and stay at full zoom (no region clicked). The Region Zoom card shows next to the Lock/Zoom tabs.
+3. In Chrome DevTools, measure the width of the Region Zoom card's outer `<label>` (classes starting `flex items-center gap-3 p-3 rounded-lg border-2`) with the toggle off.
+4. Turn the toggle on (the `Active` badge appears) and measure the width again.
+5. Observed result: the card is 12.59375 px wider with the toggle on, in all four views. The issue expects the width to stay the same.
 
 **Reproduction Evidence**
 
-- **Commit showing reproduction:** [link to commit in your fork]
-- **Screenshots/logs:** [if applicable]
-- **My findings:** [what you discovered during reproduction; an
-  honest, evidenced cannot-reproduce that led you to re-pick or ask
-  the maintainer belongs here and costs you nothing]
+- **Commit showing reproduction:** none. The reproduction needed no code changes, so there is no reproduction commit. It was run on QDash commit [`917f2da5`](https://github.com/oqtopus-team/qdash/commit/917f2da5).
+- **Screenshots/logs:** none verified yet. The evidence is the width measurements below, which I took manually in Chrome DevTools at the viewport above.
+
+  | View | Off | On | Change |
+  |---|---|---|---|
+  | Metrics — Qubit | 332.578125 px | 345.171875 px | +12.59375 px |
+  | Metrics — Coupling | 332.578125 px | 345.171875 px | +12.59375 px |
+  | Chip — Qubit | 332.578125 px | 345.171875 px | +12.59375 px |
+  | Chip — Coupling | 332.578125 px | 345.171875 px | +12.59375 px |
+
+- **My findings:** the bug reproduces locally. The Region Zoom card grows by 12.59375 px when the toggle is switched on, the same amount in every view on `/metrics` and `/chip`, which matches the issue's "its width changes slightly". In `ui/src/components/ui/RegionZoomToggle.tsx`, the on state adds an `Active` badge and swaps the subtitle from "Enable to zoom into specific regions" to "Click any region on the grid to zoom in", and the `<label>` has no fixed width. That content change is the likely cause, but I have not confirmed the root cause. I have not modified QDash source code, and I have only checked one window size in one browser.
+- **Links:** issue https://github.com/oqtopus-team/qdash/issues/1218; my claim https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485516502; the maintainer's go-ahead https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: my `repro-check` Claude skill, which grades a claim comment and a repro report against the issue on five required checks (Environment, Steps, Behavior Match, Outcome Honesty and Repo Communication) and the voice guide. I ran it on `claim-draft.md` and `repro-draft.md` for #1218 before posting anything.
+- What it produced: the first run returned reject. Four checks passed, but Environment failed because my report said the browser, browser version and window width were "not recorded for these measurements", and for a bug about rendered width those details matter. It also suggested naming the exact element I measured. After the revision, the second run returned accept, with all five checks passing and no voice-guide rules broken.
+- Difficulties: I had measured the widths before writing down the browser setup, so the first draft could only say honestly that it was missing. The grader also could not confirm that the `?type=` and `?view=` URL parameters select the tabs, so I will click each link once before finalizing this documentation.
+- What changed: I added Chrome 153.0.0.0, the 957 × 827 CSS px viewport and the device pixel ratio of 2 to the Environment section, removed the "not recorded" line, and named the card's outer `<label>` as the measured element. The measurements stayed the same.
 
 ---
 
