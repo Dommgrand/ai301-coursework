@@ -58,11 +58,9 @@ one in the week it belongs to.
 
 I built an `issue-scout` Claude skill using my technical interests to create GitHub search queries, ranking filters, and a five-check grading rubric for evaluating open-source issues. My initial scan returned 300 results, narrowed them to 250 candidates, and graded the top five, but further investigations showed that an issue could appear available even when an unlinked pull request had already resolved it. I improved the rubric to search related pull requests and inspect whether the reported problem was already fixed, then validated the change by regrading EMF Camp #1931 from accept to reject. I also graded three issues from the CodePath selection site and learned that passing all five checks does not necessarily reveal partially completed work, unclear implementation scope, or slow reviews for outside contributors.
 
-**Unit 6: [one line on the tool work]**
+**Unit 10: Building a Voice Guard and QDash Repository Memory**
 
-[2-4 sentences: the voice-guard, the repo-memory file. What broke or
-fell short, and what changed because of it. "Nothing broke" counts when
-it is true - say how you know.]
+I extended my shared voice guide with rules for upstream communication and installed a voice-guard hook to review GitHub issue comments before posting. My first claim attempt was blocked because the hook could not resolve $HOME in the --body-file path, so I retried with an absolute path and successfully posted the checked comment. I also created a 41-line CLAUDE.local.md in my QDash clone to preserve repository conventions, testing instructions, and Region Zoom investigation notes, then excluded it from Git using .git/info/exclude. A later audit caught an outdated assignment status and an incorrect source-code line range in the memory file, so I corrected both while keeping the file local and untracked.
 
 **Unit 7: [one line on the tool work]**
 
