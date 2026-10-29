@@ -1,4 +1,4 @@
-# Contribution: [Issue Title]
+# Contribution: [Style]: The width should not change even when the toggle is switched.
 
 Path: `beat-2-contribution/contribution-story.md`
 
@@ -8,11 +8,10 @@ format criteria grade exactly that. Your course repo link is the whole submissio
 files and no evidence uploads are part of Assignment 5.
 
 **Contribution Number:** [1]
-**Student:** [Student name]
-**GitHub Username:** [your GitHub username, exactly as it appears on your profile - no @, no
-profile URL. Your comments upstream are identified by this name.]
-**Issue:** [GitHub issue link]
-**Pull Request:** [GitHub PR link, once opened]
+**Student:** Dominique Fraser
+**GitHub Username:** Dommgrand
+**Issue:** https://github.com/oqtopus-team/qdash/issues/1218
+**Pull Request:** Pending (not opened yet)
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -79,24 +78,16 @@ drafted, what you did with the draft.]
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs in your own words: how you searched, what your scan
-surfaced, what your scout's verdict said, why this issue fits your
-profile, and what you hope to learn. If your scout's verdict on it
-was reject and you chose it anyway, say so here and say why; choosing
-against your own tool silently is what loses points. Close with an
-honest read of the tool itself: where the scout fell short on a real
-wild search and what you changed or would change, or what convinced
-you it held up. **Record the link to your claim comment in this section too.**
-Not claimed yet? Write `claim pending` and today's date where the link goes,
-and add the link the moment your claim lands.]
+I found this issue through a mix of my own issue-scout and the CodePath selection process. My first live scout scan in Unit 9 surfaced mostly brand-new, batch-filed Python test tasks. Next, I picked three candidates from the CodePath selection site and graded each one with the scout in direct mode: oqtopus-team/qdash#1218, PowerGridModel/power-grid-model-io#107 and AlphaWaveSystems/flutter-probe#401. After I patched the rubric in Unit 10, I regraded all three. QDash #1218 came back with an accept verdict, 5/5 required checks passed, and a difficulty of moderate. The issue is a `good first issue` opened by a QDash collaborator: the Region Zoom toggle on the `/metrics` and `/chip` pages changes width when it is switched, and the fix should keep the width stable. I chose it over the other accepted issues because it combines front-end development with a visible user-experience problem, which fits my interest in both software engineering and UX/UI design. It also builds on my JavaScript/TypeScript/React experience, even though it isn't the Python work I had first aimed for. I want to learn how to reproduce a real bug in an established project's local environment, measure what actually changes, write a fix that follows the project's UI guidelines, and test it the way the maintainers expect before it goes through code review.
+
+The scout was useful, but it wasn't perfect. Its availability check caught claims hidden in issue text and fixes in unlinked PRs. Even so, it accepted issues that were partly done: on #401 the maintainer quietly removed one of the three items after I first graded it. For #1218, it guessed the wrong control (the Qubit/Coupling tabs) until the issue's video was inspected and showed the Region Zoom card, so I corrected the saved entry. The bigger change was the rubric itself. My original "Newcomer scope" check rejected issues whose design was still open, which would have ruled out many real, identifiable tasks. The `scope-feasible` patch fails only issues with no single piece of work, and moves open design questions into a difficulty note instead. I posted my claim on October 28, 2026 (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485516502). Thirty minutes later, maintainer orangekame3 assigned the issue to me and replied, "Thanks! Please go ahead." (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018). I haven't reproduced or fixed the bug yet; reproducing it locally is my next step.
 
 **Toolkit**
 
-- Tool: issue-scout (your scout: your search strategy, your rubric),
-  and how you used it
-- What it produced: [the scan and its verdict on this issue, described]
-- Difficulties: [where it fell short, or "none met" if none did]
-- What changed: [what you patched or would update, or "nothing"]
+- Tool: my `issue-scout` Claude skill (my search strategy plus a five-check rubric). I ran it in scan mode for the Unit 9 live search and in direct mode on the three CodePath selection-site issues, gathering the evidence through `gh` and the GitHub API, and saved every read-out in `scan-output.md`.
+- What it produced: in Unit 9, a live scan narrowed 300 results to 250 candidates and graded the top 5, and on 2026-10-23 it accepted all three selection-site issues. After the patch, the Unit 10 regrades (the "Unit 10 — Direct Re-grade" sections in `scan-output.md`, 2026-10-28) gave QDash #1218 accept, 5/5, moderate; power-grid-model-io#107 accept, ambitious; and flutter-probe#401 accept, straightforward.
+- Difficulties: the original "Newcomer scope" check was too restrictive. It failed an issue whenever the design was still being debated or a maintainer said it touched core internals, but most real issues have some open edge even when the work is clearly identifiable. #107, where four fixes were proposed and none chosen, was at risk of rejection for that reason alone. The scout also misidentified the #1218 control before the video was inspected, and its availability check passes partly resolved issues such as #401.
+- What changed: I applied the `scope-feasible` patch. It fails an issue only when there is no single piece of work (a codebase-wide checklist, an "improve X everywhere" or a container issue), and it sends open design edges to a difficulty note: straightforward, moderate or ambitious. The regrade confirmed the improvement: #107 is now accepted and labeled ambitious instead of being at risk, while umbrella issues like oppia#21970 should still fail (I haven't regraded that one). I also corrected the #1218 entry after the video inspection, and I would update the evidence guide to inspect issue attachments before naming where a change lives.
 
 ---
 
@@ -104,26 +95,28 @@ and add the link the moment your claim lands.]
 
 **Problem Description**
 
-[In your own words, what is broken or missing?]
+The Region Zoom control in QDash's chip and metrics grids changes width when it is switched on or off, so the layout shifts each time it is toggled.
 
 **Expected Behavior**
 
-[What should happen?]
+From the issue: "The width should not change even when the toggle is switched. Use a fixed width."
 
 **Current Behavior**
 
-[What actually happens?]
+What the issue's demonstration video shows (its frames were extracted and measured during my Claude Code investigation; I have not reproduced this locally yet): when Region Zoom is enabled, the card's right edge moves from about 1117 px to about 1142 px in the recording. The description changes from "Enable to zoom into specific regions" to "Click any region on the grid to zoom in", and an `Active` badge appears. Turning it off returns the card to the narrower width.
 
 **Affected Components**
 
-[Which parts of the codebase are involved?]
+- `ui/src/components/ui/RegionZoomToggle.tsx`, the shared component. On the current `develop` branch it has no explicit width, min-width or reserved space for its text, and its parent is a `flex items-center gap-4` row.
+- It is used by four grids: `chip/QubitGrid.tsx`, `chip/CouplingGrid.tsx`, `metrics/QubitMetricsGrid.tsx` and `metrics/CouplingMetricsGrid.tsx`.
+- Suspected cause, not verified: the longer enabled description appears to be the widest line and to widen the card. I will confirm or rule this out when I reproduce locally.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: Claude Code investigation using `gh` / the GitHub API, plus frame extraction and measurement of the issue's attached video.
+- What it produced: identified `RegionZoomToggle.tsx` as the affected shared component, measured the width change in the recording, and confirmed the component is unchanged on `develop` apart from #1321 (which kept its classes and text).
+- Difficulties: the scout's first guess about the location was wrong (the Qubit/Coupling tabs), and the UI guidelines path cited in #1422 had moved (now `docs/developer-guide/ui/guidelines.md`).
+- What changed: inspecting the video corrected the target before I claimed the issue.
 
 ---
 
@@ -207,23 +200,21 @@ observable named is not a strategy.]
 
 ## Implementation Notes
 
-[A running log, added to as you work. Date each entry. What you
-built, decisions you made when you made them, wrong turns included.]
+**2026-10-28: Claim posted (claim only, not assigned)**
 
-**[Date]**
-
-[Entry]
-
-**[Date]**
-
-[Entry]
+- My repro-check skill graded the claim draft (claim-only mode) and accepted it. Outcome Honesty and Repo Communication passed; Environment, Steps and Behavior Match were not yet applicable.
+- My voice guard's manual check passed the final draft. My first post attempt was blocked by my own voice-guard hook, because the hook could not resolve `$HOME` in the `--body-file` path. Nothing was posted that time. I retried once with the absolute path, and the hook passed.
+- I posted the claim comment as Dommgrand at 9:40 PM Eastern: https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485516502
+- When I checked afterwards, the issue was open and unassigned, and there was no maintainer response yet.
+- No reproduction, code, PR or merge exists yet.
+- Next step: wait for assignment, and prepare to reproduce locally (run the UI with `task dev-local`, toggle Region Zoom on `/metrics` and `/chip`, and measure the card's width in both states).
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- Tool: my repro-check skill (claim-only live mode) to grade the claim draft, and my voice guard, run both as a manual check (`check_voice.py --draft`) and as the PreToolUse hook on the `gh issue comment` command.
+- What it produced: repro-check accepted the claim draft. The manual voice check passed, and the hook passed the final post.
+- Difficulties: the hook blocked the first post attempt because it read `$HOME` in the `--body-file` path literally and could not find the file.
+- What changed: I retried once with the absolute path. I would update the hook to expand `$HOME` and `~` in body-file paths.
 
 ---
 
