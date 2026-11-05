@@ -62,10 +62,9 @@ I built an `issue-scout` Claude skill using my technical interests to create Git
 
 I extended my shared voice guide with rules for upstream communication and installed a voice-guard hook to review GitHub issue comments before posting. My first claim attempt was blocked because the hook could not resolve $HOME in the --body-file path, so I retried with an absolute path and successfully posted the checked comment. I also created a 41-line CLAUDE.local.md in my QDash clone to preserve repository conventions, testing instructions, and Region Zoom investigation notes, then excluded it from Git using .git/info/exclude. A later audit caught an outdated assignment status and an incorrect source-code line range in the memory file, so I corrected both while keeping the file local and untracked.
 
-**Unit 7: [one line on the tool work]**
+**Unit 7: Installing the Ship-Gate and Writing My QDash Gate Manifest**
 
-[2-4 sentences: the ship-gate and your gate manifest. What it produced
-on your real branch, what fought you, what changed because of it.]
+I installed the ship-gate and wrote a gate manifest for QDash with three checks taken from the repo's docs and CI: the focused `RegionZoomToggle` test, `task ci-ui` and `task ci-ui-build`, each prefixed with Node 24's path so they run in a fresh shell. I excluded `task check` with a dated reason, because it auto-fixes files. The hook test stopped `gh pr create --help` twice, though Claude Code only showed the ship-gate's message, so I confirmed the voice guard's stop in its log. What fought me: a new `follow-redirects` advisory made `task ci-ui` fail its audit for reasons unrelated to my fix, so I moved my branch to upstream `develop`, where it was already fixed. My stale local `develop` would also have made the gate grade 23 upstream commits as my PR. So I'll run the gate with `--base upstream/develop`, and as of 2026-11-05 it hasn't given a verdict on the committed branch yet.
 
 **Unit 8: [one line on the tool work]**
 
@@ -259,17 +258,65 @@ Deviations:
 
 ## Testing Strategy
 
-[What observable checks prove the fix: your reproduction steps re-run
-against the built change (before and after), and the repo's own test
-suite or checks with the outcome shown. "Tests pass" with nothing
-observable named is not a strategy.]
+**Before-and-after reproduction.** I re-ran my reproduction steps on the unfixed upstream code and on the final change, with the same browser setup:
+
+- a Playwright script driving my installed Chrome 156 on the `repro-1218-16q` test chip;
+- the Lock tab at full zoom, in all four views (`/metrics` Qubit and Coupling, `/chip` Qubit and Coupling);
+- at 957 × 827, 400 × 827 and 375 × 827.
+
+The observable result is the card's outer `<label>` box, measured with the toggle off, on and off again. The script also records page and `main` overflow, clipping, overflowing text and the Forward/Reverse button's position. The full tables are in `test_evidence.md` in my QDash clone.
+
+| | 957 px (all four views) | 400 / 375 px |
+|---|---|---|
+| Before (upstream `255bb12d`) | 325.375 → 338.03125 px (+12.65625); the Forward/Reverse button moves +12.65625 px in Chip Coupling | width +1.9 to +53.5 px and height −32 to +20 px on toggle; in three Coupling configurations the Forward/Reverse button spills past `main` when ON |
+| After (final change) | 338.03125 × 64 px, off = on | width, height, position and button identical off and on in all 8 configurations; no overflow or clipping |
+
+The before run also confirmed the cause. At 957 px the OFF subtitle is 197.375 px and the ON subtitle 210.031 px: the 12.656 px difference is exactly the card's change. The ON title row (138.297 px) is narrower than both.
+
+**Repository checks** on the final working tree, from a clean shell with Node 24.22 on `PATH`. These are the three rows of my ship-gate manifest:
+
+| Command | Outcome |
+|---|---|
+| `cd ui && bun run test:run src/components/ui/__tests__/RegionZoomToggle.test.tsx` | 6/6 passed |
+| `task ci-ui` | passed: 142 test files and 949 tests; typegen, tsc, oxlint (0 warnings and 0 errors), oxfmt, knip and `bun audit` (no vulnerabilities) |
+| `task ci-ui-build` | passed: production build compiled |
+
+**Unit tests.** The six focused tests cover:
+
+- the two existing click tests;
+- the same elements and text in both states;
+- only the current subtitle and badge exposed to assistive technology (`aria-hidden`, and hidden text not in the checkbox's name);
+- `toBeChecked()` / `not.toBeChecked()`;
+- a focusable native checkbox.
+
+jsdom does no layout, so these tests can't show the width. The browser measurements do that.
+
+**Manual keyboard and accessibility check.** I checked the final code by hand in Chrome on 2026-11-03, and everything passed: Tab reaches the Region Zoom checkbox with a visible focus indicator; Space toggles it on and off; Chrome's Accessibility panel shows role checkbox with the checked state matching ON and OFF; and the accessible name contains only the visible text for each state, with the hidden subtitle and hidden `Active` badge excluded. jsdom can't prove that last point, so this check covers it.
+
+**`task check LEAKS_BASE=upstream/develop`**, which the repo requires before every push. It passed on 2026-11-05 with exit 0, on the third attempt:
+
+1. **Stopped at `test-client-ts`** (`tsc: command not found`). The repo-root Bun dependencies weren't installed in my clone; `bun install --frozen-lockfile` fixed that.
+2. **Failed only at the leak scan,** using Betterleaks 1.10.0 from Homebrew: 50 findings, all in upstream's existing sample credentials (`.env.example*`, test fixtures, auth tests) and none in my two files. The repo pins Betterleaks v1.3.1, because newer releases add rules that flag those fixtures.
+3. **Passed**, with the pinned v1.3.1. I downloaded it from the official release, checked its SHA-256 against both the release digest and `checksums.txt`, and installed it outside the repo. Every step passed, including mypy, pytest (2744 passed), the UI and TypeScript client checks, agent-runtime (170 pass) and the leak scan ("no leaks found").
+
+The auto-fixers changed nothing, and my working tree was identical before and after every run.
+
+**Not yet covered:**
+
+- Widths below 375 px.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
+- Tool: a temporary Playwright script (`~/qdash-1218-measure/measure_rzt.py`, kept outside the repo), run with `uv run --no-project --with playwright==1.55.0` against my installed Chrome, so no browser was downloaded. Also the repo's own `task ci-ui` and `task ci-ui-build`, through my ship-gate manifest.
+- What it produced: JSON evidence for 12 configurations before and after: `before-20261103-223432.json`, `after-20261103-223531.json` and `after-wrap-20261103-225159.json`. It showed the subtitle is the cause, and it caught a narrow-width overflow that my manual checks had missed.
 - Difficulties:
+  - On the first run, the script flagged the card as "clipped" on the Metrics pages. The card was only scrolled below the fold inside `main`.
+  - `task ci-ui` first failed its `bun audit` step on a new `follow-redirects` advisory that had nothing to do with my change.
+  - jsdom can't measure layout at all.
 - What changed:
+  - I made the script scroll the card into view before every measurement, count only horizontal clipping, and record `main`'s overflow.
+  - I moved my branch to upstream `develop`, which already had the security fix.
+  - When the AFTER run showed the Forward/Reverse overflow had become permanent, I added one `flex-wrap` class (see Implementation Notes).
 
 ---
 
@@ -284,38 +331,88 @@ observable named is not a strategy.]
 - No reproduction, code, PR or merge exists yet.
 - Next step: wait for assignment, and prepare to reproduce locally (run the UI with `task dev-local`, toggle Region Zoom on `/metrics` and `/chip`, and measure the card's width in both states).
 
+**2026-10-29: Reproduced, ship-gate set up, plan accepted**
+
+- Reproduced locally on `917f2da5` and posted a progress update on the issue. The card's width went from 332.578125 to 345.171875 px in all four views.
+- Filled in my ship-gate manifest with three checks from the repo's docs and CI (the focused test, `task ci-ui` and `task ci-ui-build`). I excluded `task check` with a dated reason, because it auto-fixes files. Both hooks stopped the `gh pr create --help` test.
+- Wrote the plan. Plan-check accepted it (6/6), and I then narrowed the accessibility scope. The plan comment is drafted locally and not posted yet.
+
+**2026-11-03: New base, measured before and after, one responsive fix**
+
+- `task ci-ui` failed at `bun audit`: GHSA-mrwp-f3q8-3g9p in `follow-redirects@1.16.1`, which was unrelated to my change. Upstream had already fixed it. My branch had no commits, so I backed up the draft, stashed only my two files and fast-forwarded to upstream `develop` at `255bb12d`. That pins `follow-redirects@1.16.2`.
+- Upstream had also switched to the Geist fonts and changed one line of the component (`transition-colors`), so I re-measured the bug on the new base before restoring my change. The card now grows from 325.375 to 338.03125 px at 957 px. Per line, the subtitle is the cause.
+- Restored the draft with `git stash pop`. It auto-merged with no conflict.
+- The AFTER run was stable in all 12 configurations. But at 375–400 px in the Coupling views, the Forward/Reverse button now overflowed `main` even with the toggle off, the default state. On upstream that only happened when ON. A layout probe showed `min-w-0` couldn't help: the card was already at its minimum width, set by the title row with the always-present badge.
+- With approval, I added `flex-wrap` to the title row. That lowers the card's minimum width, and the final run had no overflow anywhere. The trade-off: the card is taller at narrow widths in the Coupling views (156–188 px), the same height in both states. I haven't tested below 375 px.
+- Status: the change is uncommitted on `bugfix/1218-region-zoom-width`. Upstream's new `CLAUDE.md` says Claude must not commit, push or open PRs in this repository, so I'll publish it myself. Before that: `task check`, a final manual keyboard and Accessibility-pane check, the ship-gate run by hand, and posting the plan comment to ask which width approach the maintainers prefer. `plan.md`, `test_evidence.md` and `pr_draft.md` are ready locally.
+
+**2026-11-05: Manual accessibility check and `task check` passed**
+
+- Manual check by hand in Chrome on the final code (done 2026-11-03, after the `flex-wrap` change). Everything passed:
+  - Tab reaches the Region Zoom checkbox with a visible focus indicator;
+  - Space toggles it on and off;
+  - the Accessibility panel shows role checkbox, with the checked state matching ON and OFF;
+  - the accessible name contains only the visible text for each state, with the hidden subtitle and hidden `Active` badge excluded.
+- `task check LEAKS_BASE=upstream/develop` passed (exit 0) with no auto-fix changes, on the third attempt:
+  1. Stopped at `test-client-ts`: the repo-root Bun dependencies weren't installed. I installed them with `bun install --frozen-lockfile`.
+  2. Failed only at the leak scan, using Betterleaks 1.10.0 from Homebrew: 50 findings in upstream's existing sample credentials, none in my two files.
+  3. Passed with the repository-pinned Betterleaks 1.3.1. I downloaded it from the official release, checked its SHA-256 against the release digest and `checksums.txt`, and installed it outside the repo.
+- My working tree was identical before and after every run, with only my two files modified.
+- Status: all planned checks have passed. Still to do: post the plan comment and get the maintainers' answer on the fixed-width question, install Lefthook so the pre-commit leak scan is active, run the ship-gate by hand, then commit, push and open the PR myself.
+
+**2026-11-05: Maintainer question posted, fix committed locally**
+
+- I posted my question on the issue at 6:08 PM Eastern (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6671907954). It explains the cause, the stable-content approach and the `flex-wrap` addition, and the checks I ran. It asks whether the maintainers want an explicit CSS width, as the issue suggests, or accept the intrinsic-width approach. It also discloses that I used Claude Code. I posted it by hand; my voice-guard log has no entry for it, so it didn't go through the hook. No maintainer has replied yet.
+- I committed the fix locally as `eb8aeb6f`, "style(ui): keep the Region Zoom card width stable (#1218)", on `bugfix/1218-region-zoom-width` on top of upstream `255bb12d`. It changes only `RegionZoomToggle.tsx` and its test file (+86/−6). The working tree is clean.
+- Lefthook isn't installed in my clone, so this commit didn't go through the repo's Betterleaks pre-commit hook. The pinned Betterleaks 1.3.1 in `task check` had already scanned the same content and found no leaks.
+- Not done yet: the branch isn't pushed and there's no PR. The ship-gate hasn't run on the commit. When it does, it must use `--base upstream/develop`, because my local `develop` is still at `917f2da5`.
+- Next: wait for the maintainers' answer. If they accept the approach, run the ship-gate, push, and open the PR from `pr_draft.md` within the gate's 30-minute pass window. If they want an explicit width, switch to the planned fallback (a `w-*` class with `max-w-full`), re-measure and re-run the checks first.
+
 **Toolkit**
 
 - Tool: my repro-check skill (claim-only live mode) to grade the claim draft, and my voice guard, run both as a manual check (`check_voice.py --draft`) and as the PreToolUse hook on the `gh issue comment` command.
 - What it produced: repro-check accepted the claim draft. The manual voice check passed, and the hook passed the final post.
 - Difficulties: the hook blocked the first post attempt because it read `$HOME` in the `--body-file` path literally and could not find the file.
 - What changed: I retried once with the absolute path. I would update the hook to expand `$HOME` and `~` in body-file paths.
+- Implementation phase (2026-10-29 to 2026-11-03): Claude Code reviewed my draft against the plan, ran the manifest checks, managed the backup, stash and fast-forward, and wrote and ran the Playwright measurement script and a layout probe. Its difficulty was that a check failed for an unrelated reason (the audit advisory) and a measurement flag was a false positive (scroll position). I confirmed each with evidence before changing anything. What changed: a new base for the branch, a fixed measurement script, and one approved `flex-wrap` class. I'd also add narrow-width checks of neighboring controls to my manual verification steps.
 
 ---
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when opened]
+**PR Link:** Not opened yet. The fix is committed locally (`eb8aeb6f`) and not pushed. I'm waiting for the maintainers' answer on the width approach before opening the PR. I'll add the link here when it exists.
 
-**PR Description:** [what the PR says; much of the content above
-adapts into it]
+**PR Description:** The draft is ready locally as `pr_draft.md`, with the title "style(ui): keep the Region Zoom card width stable (#1218)". It follows the repo's template:
+
+- **Ticket:** `Fixes #1218`.
+- **Summary:** the card no longer changes size when toggled.
+- **Changes:** stacked subtitles and an always-present hidden badge, `flex-wrap` on the title row, and the new tests.
+- **The fixed-width question:** a note on it, with the `w-*` fallback.
+- **Verification:**
+  - the 12-configuration before and after measurements;
+  - the focused test, `task ci-ui`, `task ci-ui-build` and `task check`, using the pinned Betterleaks 1.3.1;
+  - the manual keyboard and Accessibility-panel check;
+  - the narrow-width height trade-off.
+- **AI assistance:** a disclosure.
+
+It may change after the maintainers answer or after the ship-gate's pr-precheck runs.
 
 **Maintainer Feedback:**
 
-- [Date]: [feedback received, or "none yet"; silence is a normal
-  state and costs you nothing]
-- [Date]: [how you addressed it]
+- 2026-10-28: orangekame3 assigned the issue to me and replied "Thanks! Please go ahead." (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018). That was before the PR, and there was no implementation direction.
+- 2026-11-05: I asked whether they want an explicit CSS width or accept the intrinsic-width approach (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6671907954). No response yet.
 
-**Status:** [Awaiting review / Iterating / Merged / Closed. The
-status is a fact you record, never a grade: the PR is graded as
-opened.]
+**Status:** PR not opened yet. The fix is committed locally and I'm waiting for the maintainers' answer on the width approach. Awaiting review, iterating or merged will only apply once the PR exists.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
+- Tool: Claude Code, used to draft `pr_draft.md` from the repo's PR template and `.github/instructions/pull-request-description-instructions.md`, and to check it against my test evidence. The ship-gate (manifest checks plus my pr-precheck) is the gate I'll run by hand before opening the PR.
+- What it produced: a PR draft that meets the repo's template, with `Fixes #1218` and the recorded check results. The ship-gate hasn't produced a verdict on the committed branch yet: its log has only the 2026-10-29 hook-test entries.
 - Difficulties:
-- What changed:
+  - QDash's updated `CLAUDE.md` says Claude must not commit, push or open PRs in the repo, so I publish everything myself. That means the ship-gate hook won't fire, and I have to run the gate by hand.
+  - My local `develop` was stale, so `--base develop` would have graded 23 upstream commits as my PR.
+  - The first AI-assistance line in the draft understated what Claude Code did.
+- What changed: I'll run the gate with `--base upstream/develop`, and I corrected the disclosure to say Claude Code also helped with the code, the tests and the automated checks. The PR link, the ship-gate verdict and any review feedback go here once the PR exists.
 
 ---
 
@@ -323,25 +420,46 @@ opened.]
 
 **Technical Skills Gained**
 
-[What you learned technically, named concretely.]
+- **CSS intrinsic sizing:**
+  - why a flex item with no width is exactly as wide as its content;
+  - how `visibility: hidden` (Tailwind `invisible`) reserves space while conditional rendering doesn't;
+  - how stacking two elements in one grid cell sizes the cell to the larger one;
+  - why `min-w-0` couldn't help when the card was already at its min-content width, and how `flex-wrap` lowered that minimum instead.
+- **Accessibility:**
+  - how a `<label>`-wrapped checkbox gets its accessible name from the label's text;
+  - how `aria-hidden` keeps hidden text out of that name;
+  - checking role, checked state and name in Chrome's Accessibility panel.
+- **Test boundaries:** jsdom does no layout, so unit tests can check structure and attributes but not width. The width needed browser measurement.
+- **Browser automation:** a Playwright script, driving my installed Chrome, that measures 12 configurations off, on and off again, and records overflow, clipping and a neighboring button's position.
+- **Git:** a verified backup, a stash limited to two files, a fast-forward to upstream, and a stash restore that auto-merged cleanly.
+- **Supply-chain basics:** reading a `bun audit` advisory, and checking a downloaded tool's SHA-256 against the release before running it.
 
 **Challenges Overcome**
 
-[What was hard and how you solved it; point at the real events, the
-Toolkit blocks above are full of them.]
+- **Unrelated audit failure:** `task ci-ui` failed on a dependency advisory that had nothing to do with my change. I traced it to the lockfile on my base commit, confirmed upstream had fixed it, and moved my branch there instead of editing the lockfile myself.
+- **New fonts:** upstream's switch to the Geist fonts made my original measurements out of date, so I re-measured the unfixed code on the new base before restoring my fix.
+- **Hidden regression:** the automated AFTER run found something my manual checks missed. My fix made a narrow-width overflow of the Forward/Reverse button permanent in the default OFF state. A layout probe showed why `min-w-0` wouldn't work, and one `flex-wrap` class fixed it.
+- **Scanner version:** `task check` failed on 50 "leaks" that turned out to be upstream's sample credentials flagged by a newer Betterleaks. The repo's pin and its comment in `flake.nix` explained it, and the pinned 1.3.1 passed.
+- **Maintainer's wording:** the issue says "Use a fixed width", but my approach isn't a literal fixed width. I documented the tradeoff and a fallback, and asked the maintainers rather than deciding for them.
 
 **What I'd Do Differently Next Time**
 
-[Reflection on your process.]
+- **Ask before building:** I'd ask about an explicit instruction like "Use a fixed width" before writing any code. My draft existed before my plan did, and I had to record that as a deviation.
+- **Automate measurement early:** I'd measure each line of text and the neighboring controls with a script from the first reproduction, instead of measuring only the whole card by hand. That would have confirmed the cause sooner and caught the narrow-width overflow before I thought the fix was done.
+- **Read the setup first:** I'd read the repo's setup and pinned tool versions (`flake.nix`, `.devcontainer`) before installing tools, and keep my fork's `develop` in sync.
+- **Install the commit hooks first:** I'd install Lefthook before committing, so the repo's own pre-commit leak scan runs.
 
 ---
 
 ## Resources Used
 
-[What actually helped, not a reading list. List things this story
-already shows you using: the doc you followed to set the environment
-up, the thread that explained the bug, the person who answered you.
-One real entry beats ten plausible ones.]
-
-- [Link to documentation that helped]
-- [Discussion, issue, or post that helped]
+- **The issue and its demo video** (https://github.com/oqtopus-team/qdash/issues/1218): the video showed the Region Zoom card itself, which corrected where I first thought the bug lived.
+- **Maintainer orangekame3's go-ahead** (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018).
+- **QDash's `docs/developer-guide/development-flow.md`:** branch, commit and PR conventions, and the "Before Pushing" `task check` requirement.
+- **`docs/developer-guide/ui/testing.md`:** `task ci-ui` and `task ci-ui-build` for shared components.
+- **`docs/developer-guide/ui/design-policy.md`:** "Interactive targets remain usable at narrow viewport widths", which shaped the fixed-width tradeoff.
+- **`docs/developer-guide/setup.md` and `Taskfile.yaml`:** `task dev-local` for the local stack.
+- **QDash's `flake.nix` and `.devcontainer/Dockerfile`:** the pinned Betterleaks v1.3.1, and the note on why newer releases flag the repo's sample credentials.
+- **GitHub advisory GHSA-mrwp-f3q8-3g9p** (https://github.com/advisories/GHSA-mrwp-f3q8-3g9p): the `follow-redirects` issue behind the audit failure.
+- **The Betterleaks v1.3.1 release** (https://github.com/betterleaks/betterleaks/releases/tag/v1.3.1): the pinned binary and its `checksums.txt`.
+- **QDash's own `docs/demos/record.py`:** it showed the repo already drives Chrome with Playwright through `uv run --with playwright`, which I copied for my measurement script.
