@@ -381,6 +381,12 @@ The auto-fixers changed nothing, and my working tree was identical before and af
 - I pushed `bugfix/1218-region-zoom-width` and opened [QDash PR #1822](https://github.com/oqtopus-team/qdash/pull/1822), "style(ui): keep the Region Zoom card width stable (#1218)", from `Dommgrand:bugfix/1218-region-zoom-width` into `develop`.
 - The PR is open and non-draft, with head commit `eb8aeb6f`. Current status as of 2026-11-12: awaiting review. The November 10 approval covered the approach before the PR; it was not a PR review.
 
+**2026-11-12: Manual voice-guard check after publication**
+
+- Opening PR #1822 from my terminal did not trigger Claude Code's PreToolUse voice-guard hook. I used the manual publication route because QDash's `CLAUDE.md` prohibits Claude from committing, pushing, or creating or updating PRs.
+- After publication, Codex retrieved the current PR description from GitHub, including CodeRabbit's appended summary, and ran my installed `check_voice.py --draft` against that saved description. It returned `voice-guard: pass. Your rules hold; you can post it.` with exit code 0. The local `guard-log.md` records a `[manual] pass` on 2026-11-12 at 11:37 Eastern.
+- No wording changes were needed. PR #1822 stayed open and its description and source were unchanged. This was a retrospective manual check, not a creation-time hook run, and does not establish that the course's exact publication procedure was followed.
+
 **Toolkit**
 
 - Tool: my repro-check skill (claim-only live mode) to grade the claim draft, and my voice guard, run both as a manual check (`check_voice.py --draft`) and as the PreToolUse hook on the `gh issue comment` command.
@@ -427,6 +433,7 @@ The ship-gate passed before publication on 2026-11-12. Any further changes will 
   - My local `develop` was stale, so `--base develop` would have graded 23 upstream commits as my PR.
   - The first AI-assistance line in the draft understated what Claude Code did.
 - What changed: I ran the gate with `--base upstream/develop`, and I corrected the disclosure to say Claude Code also helped with the code, the tests and the automated checks. The PR link and passing gate result are recorded here; review feedback will be added when it arrives.
+- Voice-guard follow-up (2026-11-12): the PR creation command skipped the hook, so Codex ran the installed guard manually on the published description afterward. It passed with exit code 0 and a dated manual-pass log entry; no PR edits were needed. This records the missing description check without claiming the creation-time hook ran.
 
 ---
 
