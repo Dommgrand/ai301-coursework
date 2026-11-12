@@ -11,7 +11,7 @@ files and no evidence uploads are part of Assignment 5.
 **Student:** Dominique Fraser
 **GitHub Username:** Dommgrand
 **Issue:** https://github.com/oqtopus-team/qdash/issues/1218
-**Pull Request:** Pending (not opened yet)
+**Pull Request:** https://github.com/oqtopus-team/qdash/pull/1822 — open, awaiting review (2026-11-12)
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -368,6 +368,19 @@ The auto-fixers changed nothing, and my working tree was identical before and af
 - Not done yet: the branch isn't pushed and there's no PR. The ship-gate hasn't run on the commit. When it does, it must use `--base upstream/develop`, because my local `develop` is still at `917f2da5`.
 - Next: wait for the maintainers' answer. If they accept the approach, run the ship-gate, push, and open the PR from `pr_draft.md` within the gate's 30-minute pass window. If they want an explicit width, switch to the planned fallback (a `w-*` class with `max-w-full`), re-measure and re-run the checks first.
 
+**2026-11-10: Maintainer approved the intrinsic-sizing approach**
+
+- Maintainer orangekame3 replied to my question (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6764487578): "The intrinsic-sizing approach sounds good, as long as the width stays stable when toggling, an explicit fixed width isn't necessary. Please go ahead and open the PR!"
+- Decision: I'm keeping the committed intrinsic-sizing implementation (`eb8aeb6f`) as it is. An explicit CSS width isn't required, so the `w-*` fallback won't be used. The maintainer's condition, a width that stays stable when toggling, is what my before-and-after measurements show in all 12 configurations.
+- I updated `plan.md` to record the decision.
+- Next: run the ship-gate by hand on the committed branch (`--base upstream/develop`). If it passes, push the branch and open the PR from `pr_draft.md` within the 30-minute pass window. No PR exists yet.
+
+**2026-11-12: Ship-gate passed and PR opened**
+
+- I ran the ship-gate against `upstream/develop` on the committed branch. It passed the focused RegionZoomToggle test, `task ci-ui`, `task ci-ui-build`, and the live pr-precheck.
+- I pushed `bugfix/1218-region-zoom-width` and opened [QDash PR #1822](https://github.com/oqtopus-team/qdash/pull/1822), "style(ui): keep the Region Zoom card width stable (#1218)", from `Dommgrand:bugfix/1218-region-zoom-width` into `develop`.
+- The PR is open and non-draft, with head commit `eb8aeb6f`. Current status as of 2026-11-12: awaiting review. The November 10 approval covered the approach before the PR; it was not a PR review.
+
 **Toolkit**
 
 - Tool: my repro-check skill (claim-only live mode) to grade the claim draft, and my voice guard, run both as a manual check (`check_voice.py --draft`) and as the PreToolUse hook on the `gh issue comment` command.
@@ -380,14 +393,14 @@ The auto-fixers changed nothing, and my working tree was identical before and af
 
 ## Pull Request
 
-**PR Link:** Not opened yet. The fix is committed locally (`eb8aeb6f`) and not pushed. I'm waiting for the maintainers' answer on the width approach before opening the PR. I'll add the link here when it exists.
+**PR Link:** [QDash #1822](https://github.com/oqtopus-team/qdash/pull/1822), opened 2026-11-12. Open, non-draft, and awaiting review; base `develop`, head `Dommgrand:bugfix/1218-region-zoom-width`, commit `eb8aeb6f`.
 
-**PR Description:** The draft is ready locally as `pr_draft.md`, with the title "style(ui): keep the Region Zoom card width stable (#1218)". It follows the repo's template:
+**PR Description:** I opened the PR from `pr_draft.md`, with the title "style(ui): keep the Region Zoom card width stable (#1218)". It follows the repo's template:
 
 - **Ticket:** `Fixes #1218`.
 - **Summary:** the card no longer changes size when toggled.
 - **Changes:** stacked subtitles and an always-present hidden badge, `flex-wrap` on the title row, and the new tests.
-- **The fixed-width question:** a note on it, with the `w-*` fallback.
+- **The fixed-width question:** the maintainer accepted intrinsic sizing on 2026-11-10, so the documented `w-*` fallback was not needed.
 - **Verification:**
   - the 12-configuration before and after measurements;
   - the focused test, `task ci-ui`, `task ci-ui-build` and `task check`, using the pinned Betterleaks 1.3.1;
@@ -395,24 +408,25 @@ The auto-fixers changed nothing, and my working tree was identical before and af
   - the narrow-width height trade-off.
 - **AI assistance:** a disclosure.
 
-It may change after the maintainers answer or after the ship-gate's pr-precheck runs.
+The ship-gate passed before publication on 2026-11-12. Any further changes will depend on PR review.
 
 **Maintainer Feedback:**
 
 - 2026-10-28: orangekame3 assigned the issue to me and replied "Thanks! Please go ahead." (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018). That was before the PR, and there was no implementation direction.
-- 2026-11-05: I asked whether they want an explicit CSS width or accept the intrinsic-width approach (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6671907954). No response yet.
+- 2026-11-05: I asked whether they want an explicit CSS width or accept the intrinsic-width approach (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6671907954). Answered on 2026-11-10 (next item).
+- 2026-11-10: orangekame3 accepted the intrinsic-sizing approach: "an explicit fixed width isn't necessary" as long as the width stays stable when toggling, and "Please go ahead and open the PR!" (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6764487578). I'm proceeding with the existing implementation; no code changes were needed.
 
-**Status:** PR not opened yet. The fix is committed locally and I'm waiting for the maintainers' answer on the width approach. Awaiting review, iterating or merged will only apply once the PR exists.
+**Status:** As of 2026-11-12, PR #1822 is open and awaiting review. The maintainer approved the approach on 2026-11-10; the ship-gate passed and I pushed the branch and opened the PR on 2026-11-12. The PR has not been merged.
 
 **Toolkit**
 
-- Tool: Claude Code, used to draft `pr_draft.md` from the repo's PR template and `.github/instructions/pull-request-description-instructions.md`, and to check it against my test evidence. The ship-gate (manifest checks plus my pr-precheck) is the gate I'll run by hand before opening the PR.
-- What it produced: a PR draft that meets the repo's template, with `Fixes #1218` and the recorded check results. The ship-gate hasn't produced a verdict on the committed branch yet: its log has only the 2026-10-29 hook-test entries.
+- Tool: Claude Code, used to draft `pr_draft.md` from the repo's PR template and `.github/instructions/pull-request-description-instructions.md`, and to check it against my test evidence. I ran the ship-gate (manifest checks plus my pr-precheck) by hand before opening the PR on 2026-11-12.
+- What it produced: a PR draft that meets the repo's template, with `Fixes #1218` and the recorded check results. On 2026-11-12, the ship-gate passed all three manifest checks and the live pr-precheck on the committed branch, and I published PR #1822.
 - Difficulties:
   - QDash's updated `CLAUDE.md` says Claude must not commit, push or open PRs in the repo, so I publish everything myself. That means the ship-gate hook won't fire, and I have to run the gate by hand.
   - My local `develop` was stale, so `--base develop` would have graded 23 upstream commits as my PR.
   - The first AI-assistance line in the draft understated what Claude Code did.
-- What changed: I'll run the gate with `--base upstream/develop`, and I corrected the disclosure to say Claude Code also helped with the code, the tests and the automated checks. The PR link, the ship-gate verdict and any review feedback go here once the PR exists.
+- What changed: I ran the gate with `--base upstream/develop`, and I corrected the disclosure to say Claude Code also helped with the code, the tests and the automated checks. The PR link and passing gate result are recorded here; review feedback will be added when it arrives.
 
 ---
 
