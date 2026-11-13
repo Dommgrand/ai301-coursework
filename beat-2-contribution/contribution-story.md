@@ -11,7 +11,7 @@ files and no evidence uploads are part of Assignment 5.
 **Student:** Dominique Fraser
 **GitHub Username:** Dommgrand
 **Issue:** https://github.com/oqtopus-team/qdash/issues/1218
-**Pull Request:** https://github.com/oqtopus-team/qdash/pull/1822 — open, awaiting review (2026-11-12)
+**Pull Request:** https://github.com/oqtopus-team/qdash/pull/1822 — merged into `develop` (2026-11-12 Eastern)
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -66,10 +66,9 @@ I extended my shared voice guide with rules for upstream communication and insta
 
 I installed the ship-gate and wrote a QDash manifest with the focused `RegionZoomToggle` test, `task ci-ui` and `task ci-ui-build`, each using Node 24's path; I excluded the auto-fixing `task check` with a dated reason and ran it separately. An unrelated `follow-redirects` advisory initially blocked the UI audit, so I moved my branch to upstream `develop`, where it was fixed. My stale local `develop` would have made the gate grade 23 upstream commits as mine, so I used `--base upstream/develop`; the hook test also showed only the ship-gate's message, so I checked the voice-guard log to confirm its stop. On 2026-11-12, the gate passed all three manifest checks and the live pr-precheck on `eb8aeb6f`, after which I pushed the branch and opened QDash PR #1822 manually because QDash's repository instructions prohibit Claude from committing, pushing or opening PRs.
 
-**Unit 8: [one line on the tool work]**
+**Unit 12: Reviewing My PR Monitor's Merged Follow-up Draft**
 
-[2-4 sentences: the PR-monitor and your playbook. What it read, what it
-drafted, what you did with the draft.]
+With Codex's help, I installed the course PR monitor and wrote a playbook using my voice guide and five recent merged contributor PRs; their first maintainer responses ranged from 0.009 to 3.793 days, so I chose a seven-day nudge threshold, at most one nudge, and no closure for silence alone. The free state check first reported review required, but by the full run orangekame3 had approved and merged #1822, so the monitor saved a merged follow-up draft. It fell short by guessing what the maintainer's brief approval meant, suggesting an issue-closure paragraph when #1218 was already closed, and expanding a thank-you into an unmeasured bot-raised question. I checked the live review, merge and issue state and kept the draft off GitHub; my playbook makes bot suggestions optional and requires evidence for replies, and I recorded the merged outcome instead of sending the draft.
 
 ---
 
@@ -77,7 +76,7 @@ drafted, what you did with the draft.]
 
 I found this issue through a mix of my own issue-scout and the CodePath selection process. My first live scout scan in Unit 9 surfaced mostly brand-new, batch-filed Python test tasks. Next, I picked three candidates from the CodePath selection site and graded each one with the scout in direct mode: oqtopus-team/qdash#1218, PowerGridModel/power-grid-model-io#107 and AlphaWaveSystems/flutter-probe#401. After I patched the rubric in Unit 10, I regraded all three. QDash #1218 came back with an accept verdict, 5/5 required checks passed, and a difficulty of moderate. The issue is a `good first issue` opened by a QDash collaborator: the Region Zoom toggle on the `/metrics` and `/chip` pages changes width when it is switched, and the fix should keep the width stable. I chose it over the other accepted issues because it combines front-end development with a visible user-experience problem, which fits my interest in both software engineering and UX/UI design. It also builds on my JavaScript/TypeScript/React experience, even though it isn't the Python work I had first aimed for. I want to learn how to reproduce a real bug in an established project's local environment, measure what actually changes, write a fix that follows the project's UI guidelines, and test it the way the maintainers expect before it goes through code review.
 
-The scout was useful, but it wasn't perfect. Its availability check caught claims hidden in issue text and fixes in unlinked PRs. Even so, it accepted issues that were partly done: on #401 the maintainer quietly removed one of the three items after I first graded it. For #1218, it guessed the wrong control (the Qubit/Coupling tabs) until the issue's video was inspected and showed the Region Zoom card, so I corrected the saved entry. The bigger change was the rubric itself. My original "Newcomer scope" check rejected issues whose design was still open, which would have ruled out many real, identifiable tasks. The `scope-feasible` patch fails only issues with no single piece of work, and moves open design questions into a difficulty note instead. I posted my claim on October 28, 2026 (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485516502). Thirty minutes later, maintainer orangekame3 assigned the issue to me and replied, "Thanks! Please go ahead." (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018). I haven't reproduced or fixed the bug yet; reproducing it locally is my next step.
+The scout was useful, but it wasn't perfect. Its availability check caught claims hidden in issue text and fixes in unlinked PRs. Even so, it accepted issues that were partly done: on #401 the maintainer quietly removed one of the three items after I first graded it. For #1218, it guessed the wrong control (the Qubit/Coupling tabs) until the issue's video was inspected and showed the Region Zoom card, so I corrected the saved entry. The bigger change was the rubric itself. My original "Newcomer scope" check rejected issues whose design was still open, which would have ruled out many real, identifiable tasks. The `scope-feasible` patch fails only issues with no single piece of work, and moves open design questions into a difficulty note instead. I posted my claim on October 28, 2026 (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485516502). Thirty minutes later, maintainer orangekame3 assigned the issue to me and replied, "Thanks! Please go ahead." (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018). At the time of that claim, local reproduction was my next step. The sections below record the subsequent reproduction, fix, tests and merged PR.
 
 **Toolkit**
 
@@ -89,6 +88,8 @@ The scout was useful, but it wasn't perfect. Its availability check caught claim
 ---
 
 ## Understanding the Issue
+
+These observations describe the original bug at `917f2da5`; Testing Strategy records the later diagnosis and final results.
 
 **Problem Description**
 
@@ -118,6 +119,8 @@ I reproduced it locally on `develop` at `917f2da5` (Chrome 153, 957 × 827 viewp
 ---
 
 ## Reproduction Process
+
+This is the initial reproduction record, before implementation. Later browser measurements at three widths and the final fix are recorded in Testing Strategy and Implementation Notes.
 
 **Environment Setup**
 
@@ -160,12 +163,14 @@ I reproduced it locally on `develop` at `917f2da5` (Chrome 153, 957 × 827 viewp
 
 - Tool: my `repro-check` Claude skill, which grades a claim comment and a repro report against the issue on five required checks (Environment, Steps, Behavior Match, Outcome Honesty and Repo Communication) and the voice guide. I ran it on `claim-draft.md` and `repro-draft.md` for #1218 before posting anything.
 - What it produced: the first run returned reject. Four checks passed, but Environment failed because my report said the browser, browser version and window width were "not recorded for these measurements", and for a bug about rendered width those details matter. It also suggested naming the exact element I measured. After the revision, the second run returned accept, with all five checks passing and no voice-guide rules broken.
-- Difficulties: I had measured the widths before writing down the browser setup, so the first draft could only say honestly that it was missing. The grader also could not confirm that the `?type=` and `?view=` URL parameters select the tabs, so I will click each link once before finalizing this documentation.
+- Difficulties: I had measured the widths before writing down the browser setup, so the first draft could only say honestly that it was missing. The grader also could not confirm that the `?type=` and `?view=` URL parameters select the tabs. The reproduction requires selecting each named view explicitly; the later automated run covered all four views rather than treating the URL parameters as proof.
 - What changed: I added Chrome 153.0.0.0, the 957 × 827 CSS px viewport and the device pixel ratio of 2 to the Environment section, removed the "not recorded" line, and named the card's outer `<label>` as the measured element. The measurements stayed the same.
 
 ---
 
 ## Solution Approach
+
+The analysis and plan below preserve the 2026-10-29 planning stage, including its then-unresolved questions. The later dated Implementation Notes record the confirmed cause, `flex-wrap` deviation, maintainer approval and publication; Testing Strategy records the completed checks.
 
 **Analysis**
 
@@ -253,7 +258,7 @@ Deviations:
 - Tool: my `plan-check` Claude skill, which grades a plan and a draft plan comment against the issue and my posted reproduction evidence on six required checks (Diagnosis & Grounding, Bounded Scope, Executability, Honesty & Unknowns, Observable Test, Thread & Repo Communication), plus my voice guide. Before running it, I used Claude Code to read issue #1218 with `gh`, the component and its four callers, `docs/developer-guide/ui/design-policy.md` and `docs/developer-guide/ui/testing.md`, and to review the uncommitted draft against them.
 - What it produced: ACCEPT, with all six required checks passing (6/6) on `plan.md` and `plan-comment.md`. Its review feedback noted that the `aria-labelledby`/`aria-describedby` change in that version was an optional accessibility improvement, not something the width bug needs.
 - Difficulties: the fixed-width tradeoff. The issue asks for "a fixed width", but a hard-coded width risks clipping the text and works against the design policy's narrow-width rule, so the literal request and the fix I prefer pull in different directions. Accessibility scope: reviewing the draft's tests showed the checkbox's name already changes with the state, and I overreached by planning a new name structure for it. jsdom: it does no layout and loads no CSS, so unit tests can't show the width stays the same or that Chrome hides the inactive text; only manual browser checks can. Running plan-check headlessly also failed at first, because `claude -p` couldn't approve reads of the skill's own files, so the graded run happened outside headless mode.
-- What changed: I narrowed the accessibility scope. I removed the `aria-labelledby`/`aria-describedby` work and kept the tests for an accessible checkbox, its checked state, inactive content hidden from assistive technology, the existing clicks, and manual keyboard checks. I also clarified the plan: "Use a fixed width" is now attributed to the issue's author rather than to the maintainer, the fixed-width question moved into the plan comment with an explicit `w-*` + `max-w-full` fallback, and both changes are recorded as dated deviations. `plan.md` and this section stay word-for-word the same.
+- What changed: I narrowed the accessibility scope. I removed the `aria-labelledby`/`aria-describedby` work and kept the tests for an accessible checkbox, its checked state, inactive content hidden from assistive technology, the existing clicks, and manual keyboard checks. I also clarified the plan: "Use a fixed width" is now attributed to the issue's author rather than to the maintainer, the fixed-width question moved into the plan comment with an explicit `w-*` + `max-w-full` fallback, and both changes are recorded as dated deviations. At that planning stage, I kept `plan.md` and this section aligned; subsequent decisions are recorded in the dated notes.
 ---
 
 ## Testing Strategy
@@ -387,6 +392,13 @@ The auto-fixers changed nothing, and my working tree was identical before and af
 - After publication, Codex retrieved the current PR description from GitHub, including CodeRabbit's appended summary, and ran my installed `check_voice.py --draft` against that saved description. It returned `voice-guard: pass. Your rules hold; you can post it.` with exit code 0. The local `guard-log.md` records a `[manual] pass` on 2026-11-12 at 11:37 Eastern.
 - No wording changes were needed. PR #1822 stayed open and its description and source were unchanged. This was a retrospective manual check, not a creation-time hook run, and does not establish that the course's exact publication procedure was followed.
 
+**2026-11-12: Unit 12 monitor, approval and merge**
+
+- Codex helped install the read-only course monitor under `~/.claude/pr-monitor/` without adding hooks or changing Claude Code settings. Its first `--state` run found the right PR and reported review required; the four playbook sections were initially blank, so a full drafting run was not ready.
+- I chose rules for direct, evidence-backed replies, one nudge after seven quiet days, and keeping a silent PR open. QDash's `docs/CONTRIBUTING.md` gives no stated review wait. Codex sampled merged contributor PRs #1812, #1758, #1783, #1729 and #1713, excluding maintainer and bot authors; first maintainer comment, review or merge waits were 0.009, 3.793, 0.116, 0.655 and 0.316 days respectively. The longest sample was under four days, so seven allows several extra days; the sample is guidance, not a promise.
+- The full monitor run read the now-merged PR, called Claude once, and saved `run-report.md` and `drafted-move.md` locally. I reviewed its merged follow-up against GitHub: the maintainer approved at 7:00:46 PM Eastern, merged at 7:00:57 PM, and issue #1218 closed as completed two seconds later. GitHub's UTC timestamps fall on November 13; the local date is November 12.
+- I did not send the draft: it added speculation about the approval, an unnecessary issue-closure paragraph, and an unmeasured bot-raised question. No reply, nudge, rebase or source change was needed. The monitor, playbook, evidence and draft stay outside the coursework repository.
+
 **Toolkit**
 
 - Tool: my repro-check skill (claim-only live mode) to grade the claim draft, and my voice guard, run both as a manual check (`check_voice.py --draft`) and as the PreToolUse hook on the `gh issue comment` command.
@@ -399,7 +411,7 @@ The auto-fixers changed nothing, and my working tree was identical before and af
 
 ## Pull Request
 
-**PR Link:** [QDash #1822](https://github.com/oqtopus-team/qdash/pull/1822), opened 2026-11-12. Open, non-draft, and awaiting review; base `develop`, head `Dommgrand:bugfix/1218-region-zoom-width`, commit `eb8aeb6f`.
+**PR Link:** [QDash #1822](https://github.com/oqtopus-team/qdash/pull/1822), opened 2026-11-12 and merged into `develop` on 2026-11-12 at 7:00 PM Eastern (2026-11-13 00:00:57 UTC). Head `Dommgrand:bugfix/1218-region-zoom-width`, commit `eb8aeb6f`; merge commit `ecb5719d`.
 
 **PR Description:** I opened the PR from `pr_draft.md`, with the title "style(ui): keep the Region Zoom card width stable (#1218)". It follows the repo's template:
 
@@ -421,8 +433,10 @@ The ship-gate passed before publication on 2026-11-12. Any further changes will 
 - 2026-10-28: orangekame3 assigned the issue to me and replied "Thanks! Please go ahead." (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6485956018). That was before the PR, and there was no implementation direction.
 - 2026-11-05: I asked whether they want an explicit CSS width or accept the intrinsic-width approach (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6671907954). Answered on 2026-11-10 (next item).
 - 2026-11-10: orangekame3 accepted the intrinsic-sizing approach: "an explicit fixed width isn't necessary" as long as the width stays stable when toggling, and "Please go ahead and open the PR!" (https://github.com/oqtopus-team/qdash/issues/1218#issuecomment-6764487578). I'm proceeding with the existing implementation; no code changes were needed.
+- 2026-11-12: automated reviews arrived first. CodeRabbit reported no actionable comments; Pullfrog offered two non-blocking notes and raised an unmeasured pan-zoom layout question. These were bot comments, not maintainer change requests; I made no source changes or replies for them.
+- 2026-11-12, 7:00 PM Eastern: orangekame3 [approved the PR](https://github.com/oqtopus-team/qdash/pull/1822#pullrequestreview-5884000623) with "@Dommgrand Thanks! LGTM" and merged it eleven seconds later. No changes were requested. I verified the outcome, updated this story, and kept the monitor's follow-up draft local; I have not posted a thank-you or other follow-up.
 
-**Status:** As of 2026-11-12, PR #1822 is open and awaiting review. The maintainer approved the approach on 2026-11-10; the ship-gate passed and I pushed the branch and opened the PR on 2026-11-12. The PR has not been merged.
+**Status:** Merged into `develop` by orangekame3 on 2026-11-12 at 7:00 PM Eastern. Issue #1218 is closed as completed. No maintainer-requested changes remain.
 
 **Toolkit**
 
@@ -454,6 +468,7 @@ The ship-gate passed before publication on 2026-11-12. Any further changes will 
 - **Browser automation:** a Playwright script, driving my installed Chrome, that measures 12 configurations off, on and off again, and records overflow, clipping and a neighboring button's position.
 - **Git:** a verified backup, a stash limited to two files, a fast-forward to upstream, and a stash restore that auto-merged cleanly.
 - **Supply-chain basics:** reading a `bun audit` advisory, and checking a downloaded tool's SHA-256 against the release before running it.
+- **Review monitoring:** separate bot suggestions from maintainer requests, verify the current review and issue state, and treat a generated next move as a draft to assess. A merged PR needs no further code changes just because a draft suggests a follow-up.
 
 **Challenges Overcome**
 
@@ -463,12 +478,15 @@ The ship-gate passed before publication on 2026-11-12. Any further changes will 
 - **Scanner version:** `task check` failed on 50 "leaks" that turned out to be upstream's sample credentials flagged by a newer Betterleaks. The repo's pin and its comment in `flake.nix` explained it, and the pinned 1.3.1 passed.
 - **Maintainer's wording:** the issue says "Use a fixed width", but my approach isn't a literal fixed width. I documented the tradeoff and a fallback, and asked the maintainers rather than deciding for them.
 
+- **Changing PR state:** the first monitor read required review, but the full run found a merge. I verified the approval, merge timestamp and closed issue rather than relying on the earlier snapshot or the draft's assumptions.
+
 **What I'd Do Differently Next Time**
 
 - **Ask before building:** I'd ask about an explicit instruction like "Use a fixed width" before writing any code. My draft existed before my plan did, and I had to record that as a deviation.
 - **Automate measurement early:** I'd measure each line of text and the neighboring controls with a script from the first reproduction, instead of measuring only the whole card by hand. That would have confirmed the cause sooner and caught the narrow-width overflow before I thought the fix was done.
 - **Read the setup first:** I'd read the repo's setup and pinned tool versions (`flake.nix`, `.devcontainer`) before installing tools, and keep my fork's `develop` in sync.
 - **Install the commit hooks first:** I'd install Lefthook before committing, so the repo's own pre-commit leak scan runs.
+- **Plan the publication checks:** when repository instructions require manual publication, I'd run the voice guard manually before posting and record the deviation from the course's hook route. For monitor drafts, I'd check issue state before considering any closure reminder and keep a merge thank-you to one specific sentence.
 
 ---
 
@@ -484,3 +502,9 @@ The ship-gate passed before publication on 2026-11-12. Any further changes will 
 - **GitHub advisory GHSA-mrwp-f3q8-3g9p** (https://github.com/advisories/GHSA-mrwp-f3q8-3g9p): the `follow-redirects` issue behind the audit failure.
 - **The Betterleaks v1.3.1 release** (https://github.com/betterleaks/betterleaks/releases/tag/v1.3.1): the pinned binary and its `checksums.txt`.
 - **QDash's own `docs/demos/record.py`:** it showed the repo already drives Chrome with Playwright through `uv run --with playwright`, which I copied for my measurement script.
+
+- **The [Unit 12 starter materials](https://github.com/codepath/ai301-unit8-starter):** `monitor.py`, `move-forms.md` and `skill/INSTALL.md` for the read-only monitor, local drafts and four-section playbook; their Unit 8 corresponds to my Unit 12.
+- **QDash's [contribution guide](https://github.com/oqtopus-team/qdash/blob/develop/docs/CONTRIBUTING.md):** checked for a stated review wait; none was specified.
+- **Merged contributor PRs [#1812](https://github.com/oqtopus-team/qdash/pull/1812), [#1758](https://github.com/oqtopus-team/qdash/pull/1758), [#1783](https://github.com/oqtopus-team/qdash/pull/1783), [#1729](https://github.com/oqtopus-team/qdash/pull/1729), and [#1713](https://github.com/oqtopus-team/qdash/pull/1713):** first maintainer-response evidence for my seven-day nudge threshold.
+- **My local voice guide and monitor playbook:** evidence, uncertainty and polite-ping rules; no automatic posting or closure.
+- **The [approving review](https://github.com/oqtopus-team/qdash/pull/1822#pullrequestreview-5884000623), [merged PR](https://github.com/oqtopus-team/qdash/pull/1822), and [completed issue](https://github.com/oqtopus-team/qdash/issues/1218):** verified the final contribution outcome.
